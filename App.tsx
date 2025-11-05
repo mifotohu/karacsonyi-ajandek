@@ -180,80 +180,20 @@ function App() {
                 submittedAt: new Date().toISOString()
             };
             
-            const formatEmailBody = (payload: { formData: FormData, priceDetails: PriceDetails, utmParams: UtmParams, submittedAt: string }) => {
-                const { formData, priceDetails, utmParams, submittedAt } = payload;
-                const currencyFormatter = new Intl.NumberFormat('hu-HU', {
-                    style: 'currency',
-                    currency: 'HUF',
-                    minimumFractionDigits: 0,
-                });
-
-                let body = `Új megrendelés érkezett a weboldalról!\n\n`;
-                body += `Időpont: ${new Date(submittedAt).toLocaleString('hu-HU')}\n`;
-                body += `========================================\n\n`;
-                
-                body += `MEGRENDELŐ ADATAI:\n`;
-                body += `Név: ${formData.customerName}\n`;
-                body += `Email: ${formData.customerEmail}\n`;
-                body += `Telefon: ${formData.customerPhone || 'Nincs megadva'}\n\n`;
-                
-                body += `SZÁMLÁZÁSI ADATOK:\n`;
-                body += `Név: ${formData.billingName}\n`;
-                body += `Cím: ${formData.billingZip} ${formData.billingCity}, ${formData.billingAddress}\n`;
-                body += `Adószám: ${formData.billingTaxNumber || 'Nincs megadva'}\n\n`;
-                
-                body += `RENDELÉS RÉSZLETEI:\n`;
-                body += `Résztvevők száma: ${formData.participantCount} fő\n`;
-                body += `Tervezett beváltás: ${formData.preferredMonth}\n`;
-                body += `Kiválasztott szolgáltatások:\n`;
-                formData.selectedServices.forEach((serviceId: Service) => {
-                    const service = SERVICES.find(s => s.id === serviceId);
-                    const prices = PRICING[serviceId];
-                    const price = Number(formData.participantCount) === 2 && prices.twoPerson !== null ? prices.twoPerson : prices.onePerson;
-                    body += `  - ${service?.name || serviceId}: ${currencyFormatter.format(price)}\n`;
-                });
-                body += `\n`;
-
-                body += `ÁR ÖSSZEGZÉS:\n`;
-                body += `Részösszeg: ${currencyFormatter.format(priceDetails.baseTotal)}\n`;
-                priceDetails.discounts.forEach((discount) => {
-                    body += `${discount.label}: ${currencyFormatter.format(discount.amount)}\n`;
-                });
-                body += `Végösszeg: ${currencyFormatter.format(priceDetails.finalTotal)}\n\n`;
-
-                body += `MEGJEGYZÉS:\n`;
-                body += `${formData.notes || 'Nincs megadva'}\n\n`;
-                
-                body += `EGYÉB:\n`;
-                body += `Hírlevél feliratkozás: ${formData.newsletterSignup ? 'Igen' : 'Nem'}\n\n`;
-                
-                if (Object.values(utmParams).some(p => p)) {
-                    body += `UTM PARAMÉTEREK:\n`;
-                    body += `Forrás: ${utmParams.utm_source || 'N/A'}\n`;
-                    body += `Kampány: ${utmParams.utm_campaign || 'N/A'}\n`;
-                    body += `Médium: ${utmParams.utm_medium || 'N/A'}\n`;
-                    body += `Kifejezés: ${utmParams.utm_term || 'N/A'}\n`;
-                    body += `Tartalom: ${utmParams.utm_content || 'N/A'}\n`;
-                }
-
-                return body;
-            };
-
-            const emailBody = formatEmailBody(payload);
-            const subject = `Új megrendelés: ${formData.customerName}`;
-            const mailtoLink = `mailto:info@pragerfoto.hu?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
-
-            window.location.href = mailtoLink;
+            // This simulates sending the data to a backend server.
+            // In a real application, you would use fetch() to send the payload to an endpoint,
+            // and the server would then handle sending the email.
+            console.log("SIMULATING SENDING ORDER TO BACKEND:", payload);
             
-            // We assume the mail client was opened. Show success message after a brief delay.
-            setTimeout(() => {
-                setIsSubmitted(true);
-                setIsProcessing(false);
-            }, 1000);
+            // Simulate network delay for a better user experience
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Assuming the API call was successful, show the success message.
+            setIsSubmitted(true);
     
         } catch(err) {
             console.error("Hiba a megrendelés elküldése közben:", err);
-            alert("Hiba történt a megrendelés előkészítése közben. Kérjük, próbálja újra később.");
+            alert("Hiba történt a megrendelés elküldése közben. Kérjük, próbálja újra később.");
             setIsProcessing(false);
         }
     };
