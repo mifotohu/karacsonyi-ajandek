@@ -166,36 +166,87 @@ function App() {
     }, [formData, validateForm]);
     
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
         
         setIsProcessing(true);
 
-        try {
-            const payload = {
-                formData,
-                priceDetails,
-                utmParams,
-                submittedAt: new Date().toISOString()
-            };
-            
-            // This simulates sending the data to a backend server.
-            // In a real application, you would use fetch() to send the payload to an endpoint,
-            // and the server would then handle sending the email.
-            console.log("SIMULATING SENDING ORDER TO BACKEND:", payload);
-            
-            // Simulate network delay for a better user experience
-            await new Promise(resolve => setTimeout(resolve, 1500));
+        const currencyFormatter = new Intl.NumberFormat('hu-HU', {
+            style: 'currency',
+            currency: 'HUF',
+            minimumFractionDigits: 0,
+        });
 
-            // Assuming the API call was successful, show the success message.
-            setIsSubmitted(true);
-    
-        } catch(err) {
-            console.error("Hiba a megrendelés elküldése közben:", err);
-            alert("Hiba történt a megrendelés elküldése közben. Kérjük, próbálja újra később.");
-            setIsProcessing(false);
-        }
+        const subject = `Megrendelés - ${formData.customerName}`;
+
+        const serviceNames = formData.selectedServices.map(serviceId => {
+            const service = SERVICES.find(s => s.id === serviceId);
+            return service ? `- ${service.name}` : `- ${serviceId}`;
+        }).join('\n');
+
+        const discountSummary = priceDetails.discounts.length > 0 
+            ? priceDetails.discounts.map(d => `   ${d.label}: ${currencyFormatter.format(d.amount)}`).join('\n')
+            : 'Nincs';
+
+        const body = `
+Tisztelt Pragerfoto Csapat!
+
+Ezúton szeretném leadni a megrendelésemet.
+
+================================
+MEGRENDELŐ ADATAI
+================================
+Név: ${formData.customerName}
+Email: ${formData.customerEmail}
+Telefon: ${formData.customerPhone || 'Nincs megadva'}
+
+================================
+SZÁMLÁZÁSI ADATOK
+================================
+Név / Cégnév: ${formData.billingName}
+Irányítószám: ${formData.billingZip}
+Város: ${formData.billingCity}
+Cím: ${formData.billingAddress}
+Adószám: ${formData.billingTaxNumber || 'Nincs megadva'}
+
+================================
+RENDELÉS RÉSZLETEI
+================================
+Résztvevők száma: ${formData.participantCount} fő
+Kiválasztott szolgáltatások:
+${serviceNames}
+
+Beváltás tervezett ideje: ${formData.preferredMonth}
+Megjegyzés:
+${formData.notes || 'Nincs megjegyzés.'}
+
+================================
+ÁR ÖSSZEGZÉS
+================================
+Alapár összesen: ${currencyFormatter.format(priceDetails.baseTotal)}
+Kedvezmények:
+${discountSummary}
+--------------------------------
+FIZETENDŐ VÉGÖSSZEG: ${currencyFormatter.format(priceDetails.finalTotal)}
+
+================================
+EGYÉB
+================================
+Hírlevél feliratkozás: ${formData.newsletterSignup ? 'Igen' : 'Nem'}
+Adatkezelési feltételek elfogadva: ${formData.agreedToTerms ? 'Igen' : 'Nem'}
+
+Köszönettel,
+${formData.customerName}
+`;
+
+        const mailtoLink = `mailto:info@pragerfoto.hu?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+        setIsSubmitted(true);
+
+        window.location.href = mailtoLink;
+
+        setTimeout(() => setIsProcessing(false), 1500);
     };
 
     if (isSubmitted) {
