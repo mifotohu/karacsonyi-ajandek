@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import type { Service, FormData, PriceDetails, UtmParams } from './types';
@@ -7,8 +8,6 @@ import { PriceSummary } from './components/PriceSummary';
 import { FormSection } from './components/FormSection';
 import { StickyFooter } from './components/StickyFooter';
 import { SuccessOverlay } from './components/SuccessOverlay';
-
-const API_ENDPOINT: string = "/api/create-invoice"; 
 
 const initialFormData: FormData = {
     // Customer details
@@ -174,57 +173,87 @@ function App() {
         setIsProcessing(true);
 
         try {
-            // This is where you would send the data to your backend.
-            // The backend would then securely communicate with Billingo.
             const payload = {
                 formData,
                 priceDetails,
                 utmParams,
                 submittedAt: new Date().toISOString()
             };
-
-            // MOCKING a backend call to Billingo.
-            // In a real app, you would use fetch() here to your own backend endpoint.
-            console.log("Submitting to backend for Billingo invoice generation:", payload);
             
-            // This is a placeholder for the actual API call.
-            // It simulates the network request. In a real app, the API key would be on a secure backend.
-            const responsePromise = new Promise(resolve => setTimeout(() => {
-                // Mock response structure
-                resolve({ ok: true, json: () => Promise.resolve({ success: true, invoiceId: 'INV-12345' }) });
-            }, 1500));
-            
-            const response = await responsePromise as Response;
-
-            if (response.ok) {
-                // SIMULATE SENDING CUSTOMER CONFIRMATION EMAIL
-                console.log("SIMULATING: Sending order confirmation email to customer...");
-                console.log("To:", formData.customerEmail);
-                console.log("Subject:", `Pragerfoto Megrendelés Visszaigazolás`);
-                console.log("Body:", {
-                    message: "Köszönjük a megrendelésed! A díjbekérőt hamarosan küldjük.",
-                    customerName: formData.customerName,
-                    selectedServices: formData.selectedServices.map(id => SERVICES.find(s => s.id === id)?.name),
-                    priceDetails,
-                    notes: formData.notes
+            const formatEmailBody = (payload: { formData: FormData, priceDetails: PriceDetails, utmParams: UtmParams, submittedAt: string }) => {
+                const { formData, priceDetails, utmParams, submittedAt } = payload;
+                const currencyFormatter = new Intl.NumberFormat('hu-HU', {
+                    style: 'currency',
+                    currency: 'HUF',
+                    minimumFractionDigits: 0,
                 });
 
-                // SIMULATE SENDING ADMIN NOTIFICATION EMAIL
-                console.log("SIMULATING: Sending new order notification to admin...");
-                console.log("To:", "info@pragerfoto.hu");
-                console.log("Subject:", `Új megrendelés érkezett: ${formData.customerName}`);
-                console.log("Body (Full Payload):", payload);
+                let body = `Új megrendelés érkezett a weboldalról!\n\n`;
+                body += `Időpont: ${new Date(submittedAt).toLocaleString('hu-HU')}\n`;
+                body += `========================================\n\n`;
+                
+                body += `MEGRENDELŐ ADATAI:\n`;
+                body += `Név: ${formData.customerName}\n`;
+                body += `Email: ${formData.customerEmail}\n`;
+                body += `Telefon: ${formData.customerPhone || 'Nincs megadva'}\n\n`;
+                
+                body += `SZÁMLÁZÁSI ADATOK:\n`;
+                body += `Név: ${formData.billingName}\n`;
+                body += `Cím: ${formData.billingZip} ${formData.billingCity}, ${formData.billingAddress}\n`;
+                body += `Adószám: ${formData.billingTaxNumber || 'Nincs megadva'}\n\n`;
+                
+                body += `RENDELÉS RÉSZLETEI:\n`;
+                body += `Résztvevők száma: ${formData.participantCount} fő\n`;
+                body += `Tervezett beváltás: ${formData.preferredMonth}\n`;
+                body += `Kiválasztott szolgáltatások:\n`;
+                formData.selectedServices.forEach((serviceId: Service) => {
+                    const service = SERVICES.find(s => s.id === serviceId);
+                    const prices = PRICING[serviceId];
+                    const price = Number(formData.participantCount) === 2 && prices.twoPerson !== null ? prices.twoPerson : prices.onePerson;
+                    body += `  - ${service?.name || serviceId}: ${currencyFormatter.format(price)}\n`;
+                });
+                body += `\n`;
 
+                body += `ÁR ÖSSZEGZÉS:\n`;
+                body += `Részösszeg: ${currencyFormatter.format(priceDetails.baseTotal)}\n`;
+                priceDetails.discounts.forEach((discount) => {
+                    body += `${discount.label}: ${currencyFormatter.format(discount.amount)}\n`;
+                });
+                body += `Végösszeg: ${currencyFormatter.format(priceDetails.finalTotal)}\n\n`;
 
+                body += `MEGJEGYZÉS:\n`;
+                body += `${formData.notes || 'Nincs megadva'}\n\n`;
+                
+                body += `EGYÉB:\n`;
+                body += `Hírlevél feliratkozás: ${formData.newsletterSignup ? 'Igen' : 'Nem'}\n\n`;
+                
+                if (Object.values(utmParams).some(p => p)) {
+                    body += `UTM PARAMÉTEREK:\n`;
+                    body += `Forrás: ${utmParams.utm_source || 'N/A'}\n`;
+                    body += `Kampány: ${utmParams.utm_campaign || 'N/A'}\n`;
+                    body += `Médium: ${utmParams.utm_medium || 'N/A'}\n`;
+                    body += `Kifejezés: ${utmParams.utm_term || 'N/A'}\n`;
+                    body += `Tartalom: ${utmParams.utm_content || 'N/A'}\n`;
+                }
+
+                return body;
+            };
+
+            const emailBody = formatEmailBody(payload);
+            const subject = `Új megrendelés: ${formData.customerName}`;
+            const mailtoLink = `mailto:info@pragerfoto.hu?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+
+            window.location.href = mailtoLink;
+            
+            // We assume the mail client was opened. Show success message after a brief delay.
+            setTimeout(() => {
                 setIsSubmitted(true);
-            } else {
-                throw new Error("Simulated API Error");
-            }
+                setIsProcessing(false);
+            }, 1000);
     
         } catch(err) {
-            console.error("Error during submission process:", err);
-            alert("Hiba történt a megrendelés leadása közben. Kérjük, próbálja újra később.");
-        } finally {
+            console.error("Hiba a megrendelés elküldése közben:", err);
+            alert("Hiba történt a megrendelés előkészítése közben. Kérjük, próbálja újra később.");
             setIsProcessing(false);
         }
     };
