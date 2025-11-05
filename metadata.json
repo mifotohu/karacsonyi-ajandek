@@ -1,0 +1,5 @@
+{
+  "name": "karacsonyi ajandek",
+  "description": "A checkout flow for ordering photography and AI mentorship services. Features live price calculation and Billingo invoice integration.",
+  "requestFramePermissions": []
+}
