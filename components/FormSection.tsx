@@ -134,7 +134,7 @@ export const FormSection: React.FC<FormSectionProps> = ({ formData, formErrors, 
                     <div className="space-y-3 mt-4">
                         <label className="flex items-start">
                             <input type="checkbox" name="agreedToTerms" checked={formData.agreedToTerms} onChange={onInputChange} className="h-5 w-5 mt-0.5 rounded border-gray-300 text-prager-gold focus:ring-prager-gold" />
-                            <span className="ml-3 text-sm text-prager-gray">Elfogadom az <a href="#" target="_blank" rel="noopener noreferrer" className="text-prager-gold underline">adatkezelési feltételeket</a>. *</span>
+                            <span className="ml-3 text-sm text-prager-gray">Elfogadom az <a href="https://www.pragerfoto.hu/adatvedelmi-nyilatkozat/" target="_blank" rel="noopener noreferrer" className="text-prager-gold underline">adatkezelési feltételeket</a>. *</span>
                         </label>
                         {formErrors.agreedToTerms && <p className="text-red-600 text-xs mt-1">{formErrors.agreedToTerms}</p>}
                         

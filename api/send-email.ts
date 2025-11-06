@@ -5,7 +5,7 @@ type VercelResponse = any;
 
 // A típusokat a frontendről másoljuk át, hogy elkerüljük a bonyolult megosztási logikát
 // egy egyszerűsített build rendszer nélküli projektben.
-type Service = 'gepsimito' | 'studio' | 'perplexity' | 'vibe' | 'ai_alapok' | 'leo_halado';
+type Service = 'gepsimito' | 'studio' | 'perplexity' | 'ai_alapok' | 'leo_halado';
 
 interface FormData {
     customerName: string;
@@ -40,7 +40,6 @@ const SERVICE_NAMES: Record<Service, string> = {
     gepsimito: 'Gépsimító',
     studio: 'Stúdió fotózás alapjai',
     perplexity: 'Perplexity AI kereső alapjai',
-    vibe: 'Vibe coding alapjai',
     ai_alapok: 'AI képgenerálás alapjai',
     leo_halado: 'Leonardo AI tudásbázis - haladó',
 };

@@ -1,4 +1,4 @@
-export type Service = 'gepsimito' | 'studio' | 'perplexity' | 'vibe' | 'ai_alapok' | 'leo_halado';
+export type Service = 'gepsimito' | 'studio' | 'perplexity' | 'ai_alapok' | 'leo_halado';
 
 export interface ServiceDetails {
     id: Service;
