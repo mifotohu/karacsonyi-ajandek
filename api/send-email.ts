@@ -1,4 +1,3 @@
-
 // A Vercel/Node.js-kompatibilis kérés- és válaszobjektumok típusait `any`-ként definiáljuk,
 // mivel nincs `package.json`-ünk, így nem tudjuk importálni a `@vercel/node` típusait.
 type VercelRequest = any;
