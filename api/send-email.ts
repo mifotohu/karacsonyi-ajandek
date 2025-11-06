@@ -148,7 +148,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                from: 'Pragerfoto Rendelés <noreply@pragerfoto.hu>', // FONTOS: Ennek a domainnek igazolva kell lennie a Resend fiókban.
+                from: 'Pragerfoto Rendelés <info@pragerfoto.hu>', // FONTOS: Ennek a domainnek igazolva kell lennie a Resend fiókban.
                 to: ['info@pragerfoto.hu'],
                 reply_to: formData.customerEmail,
                 subject: `Új mentorálás megrendelés: ${formData.customerName}`,
