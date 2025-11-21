@@ -10,12 +10,12 @@ export const SuccessOverlay: React.FC<SuccessOverlayProps> = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-16 h-16 mx-auto text-prager-gold">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <h2 className="font-serif text-3xl mt-4 text-prager-dark">Sikeres megrendelés!</h2>
+                <h2 className="font-serif text-3xl mt-4 text-prager-dark">Rendelés előkészítve!</h2>
                 <p className="mt-2 text-prager-gray">
-                    Köszönjük a megrendelésedet! Hamarosan felvesszük veled a kapcsolatot a megadott e-mail címen a további részletekkel.
+                    A megrendelő emailt előkészítettük a levelezőprogramodban. Kérjük, küldd el a levelet a rendelés véglegesítéséhez!
                 </p>
                 <p className="mt-4 text-sm text-prager-gray">
-                    Ha bármi kérdésed van, keress minket bizalommal az <a href="mailto:info@pragerfoto.hu" className="text-prager-gold underline">info@pragerfoto.hu</a> címen.
+                    Ha a levelezőprogram nem nyílt meg automatikusan, kérjük a megadott adatokat küldd el manuálisan az <a href="mailto:info@pragerfoto.hu" className="text-prager-gold underline">info@pragerfoto.hu</a> címre.
                 </p>
             </div>
         </div>

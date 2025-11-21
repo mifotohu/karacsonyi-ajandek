@@ -36,7 +36,6 @@ function App() {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [utmParams, setUtmParams] = useState<UtmParams>({});
     const [isProcessing, setIsProcessing] = useState(false);
-    const [serverError, setServerError] = useState<string | null>(null);
 
     // Parse UTM parameters on initial load
     useEffect(() => {
@@ -167,41 +166,74 @@ function App() {
     }, [formData, validateForm]);
     
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!validateForm()) return;
 
         setIsProcessing(true);
-        setServerError(null);
 
-        try {
-            const response = await fetch('/api/send-email', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ formData, priceDetails }),
-            });
+        const currencyFormatter = new Intl.NumberFormat('hu-HU', {
+            style: 'currency',
+            currency: 'HUF',
+            minimumFractionDigits: 0,
+        });
 
-            if (!response.ok) {
-                const errorResult = await response.json().catch(() => null);
-                const message = errorResult?.message || `Hiba történt a szerveren: ${response.statusText}`;
-                throw new Error(message);
-            }
+        const getServiceName = (id: Service) => SERVICES.find(s => s.id === id)?.name || id;
 
-            const result = await response.json();
+        const servicesList = formData.selectedServices
+            .map(s => `- ${getServiceName(s)}`)
+            .join('\n');
 
-            if (result.success) {
-                setIsSubmitted(true);
-            } else {
-                throw new Error(result.message || 'Ismeretlen hiba történt a szerveren.');
-            }
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'A küldés sikertelen volt. Kérjük, próbáld újra később.';
-            setServerError(errorMessage);
-        } finally {
-            setIsProcessing(false);
-        }
+        const discountsList = priceDetails.discounts
+            .map(d => `${d.label}: ${currencyFormatter.format(d.amount)}`)
+            .join('\n');
+
+        const body = `Kedves Pragerfoto!
+
+Ezúton szeretném leadni a rendelésemet az alábbi adatokkal:
+
+MEGRENDELŐ ADATAI
+------------------
+Név: ${formData.customerName}
+Email: ${formData.customerEmail}
+Telefon: ${formData.customerPhone || '-'}
+
+SZÁMLÁZÁSI ADATOK
+------------------
+Név: ${formData.billingName}
+Cím: ${formData.billingZip} ${formData.billingCity}, ${formData.billingAddress}
+Adószám: ${formData.billingTaxNumber || '-'}
+
+RENDELÉS RÉSZLETEI
+------------------
+Résztvevők: ${formData.participantCount} fő
+Tervezett beváltás: ${formData.preferredMonth}
+
+Választott szolgáltatások:
+${servicesList}
+
+PÉNZÜGYI ÖSSZESÍTŐ
+------------------
+Alapár összesen: ${currencyFormatter.format(priceDetails.baseTotal)}
+${discountsList ? `\nKedvezmények:\n${discountsList}\n` : ''}
+Fizetendő végösszeg: ${currencyFormatter.format(priceDetails.finalTotal)}
+
+EGYÉB
+------------------
+Megjegyzés: ${formData.notes || '-'}
+Hírlevél feliratkozás: ${formData.newsletterSignup ? 'Igen' : 'Nem'}
+Adatkezelési feltételek elfogadva: Igen
+
+Üdvözlettel,
+${formData.customerName}`;
+
+        const subject = `Új mentorálás megrendelés: ${formData.customerName}`;
+        
+        // Open mail client
+        window.location.href = `mailto:info@pragerfoto.hu?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+        setIsSubmitted(true);
+        setIsProcessing(false);
     };
 
     if (isSubmitted) {
@@ -235,12 +267,6 @@ function App() {
                                         participantCount={formData.participantCount} 
                                     />
                                 </section>
-                                {serverError && (
-                                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                                        <strong className="font-bold">Hiba! </strong>
-                                        <span className="block sm:inline">{serverError}</span>
-                                    </div>
-                                )}
                                 <div className="hidden lg:block">
                                     <button 
                                         type="submit" 
@@ -250,7 +276,7 @@ function App() {
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                         </svg>
-                                        {isProcessing ? 'Küldés...' : 'Megrendelem'}
+                                        {isProcessing ? 'Előkészítés...' : 'Megrendelem'}
                                     </button>
                                 </div>
                             </div>
